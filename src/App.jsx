@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ShoppingCart, Tag, Bell, Mail, Globe2, CheckCircle2, Package } from "lucide-react";
+import { ShoppingCart, Tag, Bell, Mail, Globe2, CheckCircle2, Package, ShieldCheck, LineChart as LineChartIcon, Wallet } from "lucide-react";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Legend,
 } from "recharts";
@@ -52,6 +52,23 @@ const LANG = {
     qty: "Qté",
     close: "Fermer",
     seeOnEbay: "Voir sur eBay",
+    /* Nouveaux libellés — À propos */
+    aboutTitle: "À propos d’EconoDeal",
+    aboutP1: "EconoDeal centralise les liquidations des grands détaillants (Walmart, Best Buy, Canadian Tire, Home Depot…) et des marketplaces comme eBay.",
+    aboutP2: "Objectif : vous faire gagner du temps et augmenter vos marges en trouvant rapidement les meilleurs rabais, avec visibilité par magasin, SKU et disponibilité.",
+    aboutBul1: "• Agrégation multi-magasins en temps réel",
+    aboutBul2: "• Filtres par magasin, catégorie et prix",
+    aboutBul3: "• Alerte courriel (SKU/produit) et suivi d’historique",
+    aboutBul4: "• Conversion CAD↔USD intégrée",
+    /* Nouveaux libellés — Investisseurs */
+    investorsTitle: "Espace investisseurs",
+    investorsP1: "Phase 1 : démonstrateur eBay + vitrines retailers (Canada). Phase 2 : intégrations élargies (USA), alertes avancées et plans B2B.",
+    investorsP2: "Modèle de revenus : abonnement mensuel (freemium → pro), partenariats marchands et offres de datas.",
+    investorsKPIs: "Indicateurs clés (prévisionnels)",
+    investorsK1: "• ARPU cible (12 mois) : 12–20 $/mois",
+    investorsK2: "• Conversion free→paid : 4–8 %",
+    investorsK3: "• Rétention 3 mois : > 55 %",
+    investorsCTA: "Rejoindre la liste d’attente",
     footer: "© " + new Date().getFullYear() + " EconoDeal. Tous droits réservés.",
     langSwitch: "EN",
   },
@@ -67,6 +84,23 @@ const LANG = {
     qty: "Qty",
     close: "Close",
     seeOnEbay: "View on eBay",
+    /* About */
+    aboutTitle: "About EconoDeal",
+    aboutP1: "EconoDeal centralizes clearances from major retailers (Walmart, Best Buy, Canadian Tire, Home Depot…) and marketplaces like eBay.",
+    aboutP2: "Goal: save you time and boost margins by surfacing the best deals fast, with visibility by store, SKU and availability.",
+    aboutBul1: "• Multi-store aggregation in real time",
+    aboutBul2: "• Filters by store, category and price",
+    aboutBul3: "• Email alerts (SKU/product) and history tracking",
+    aboutBul4: "• Built-in CAD↔USD conversion",
+    /* Investors */
+    investorsTitle: "Investor section",
+    investorsP1: "Phase 1: eBay demo + retailer showcases (Canada). Phase 2: broader integrations (US), advanced alerts and B2B plans.",
+    investorsP2: "Revenue model: monthly subscription (freemium → pro), merchant partnerships and data offerings.",
+    investorsKPIs: "Key metrics (forecast)",
+    investorsK1: "• Target ARPU (12 months): $12–$20/mo",
+    investorsK2: "• Free→paid conversion: 4–8%",
+    investorsK3: "• 3-month retention: > 55%",
+    investorsCTA: "Join the waitlist",
     footer: "© " + new Date().getFullYear() + " EconoDeal. All rights reserved.",
     langSwitch: "FR",
   },
@@ -132,7 +166,7 @@ export default function App() {
 
   /* ---- Génération ventes “type Keepa” pour la modale ---- */
   const buildSalesFor = (dealId) => {
-    const base = 180 + (dealId.charCodeAt(dealId.length - 1) % 80);
+    const base = 180 + (dealId?.toString().charCodeAt(dealId.toString().length - 1) % 80 || 0);
     const months = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Août","Sep","Oct","Nov","Déc"];
     return months.map((m, i) => ({ m, units: Math.round(base + Math.sin(i/2)*40 + (i%3===0?20:0)) }));
   };
@@ -165,7 +199,11 @@ export default function App() {
                 USD→CAD: 1 → {fmt(usdCad)}
               </span>
             )}
-            <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="text-xs px-2 py-1 rounded-full border bg-white">
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="text-xs px-2 py-1 rounded-full border bg-white"
+            >
               <option value="CAD">CAD</option>
               <option value="USD">USD</option>
             </select>
@@ -189,6 +227,11 @@ export default function App() {
                 {T.ctaSecondary}
               </a>
             </div>
+            <ul className="mt-6 space-y-2 text-slate-600">
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-emerald-600" /> SKU & disponibilité par magasin</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-emerald-600" /> Alertes email personnalisées</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-emerald-600" /> Canada → USA</li>
+            </ul>
           </div>
 
           {/* mini vitrine */}
@@ -215,13 +258,14 @@ export default function App() {
       <section id="deals" className="mx-auto max-w-7xl px-4 py-8">
         <div className="flex items-end justify-between mb-4">
           <h2 className="text-2xl md:text-3xl font-bold">{T.sectionDeals}</h2>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-600" htmlFor="storeSel">{T.storeFilterLabel}</label>
-            <select id="storeSel" value={storeValue} onChange={(e)=> setStoreValue(e.target.value)} className="text-sm px-3 py-2 rounded-lg border bg-white hover:bg-slate-50">
-              {STORE_OPTIONS.map((o)=> (<option key={o.value} value={o.value}>{lang==='fr'? o.label_fr : o.label_en}</option>))}
-            </select>
-            <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 border">{T.badgeDemo}</span>
-          </div>
+        </div>
+
+        <div className="flex items-center gap-2 mb-4">
+          <label className="text-sm text-slate-600" htmlFor="storeSel">{T.storeFilterLabel}</label>
+          <select id="storeSel" value={storeValue} onChange={(e)=> setStoreValue(e.target.value)} className="text-sm px-3 py-2 rounded-lg border bg-white hover:bg-slate-50">
+            {STORE_OPTIONS.map((o)=> (<option key={o.value} value={o.value}>{lang==='fr'? o.label_fr : o.label_en}</option>))}
+          </select>
+          <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 border">{T.badgeDemo}</span>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -260,10 +304,7 @@ export default function App() {
                         <span className="text-slate-500 text-sm">Prix N/A</span>
                       )}
                     </div>
-                    {/* Lien secondaire (en plus du clic carte) */}
-                    <a href={it.link} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm text-emerald-700 hover:underline">
-                      {T.seeOnEbay}
-                    </a>
+                    <span className="mt-2 inline-block text-xs text-slate-500">eBay</span>
                   </div>
                 </button>
               ))
@@ -340,7 +381,77 @@ export default function App() {
         </div>
       )}
 
-      {/* Keepa-like public section (inchangée) */}
+      {/* À propos d’EconoDeal */}
+      <section id="about" className="mx-auto max-w-7xl px-4 py-10">
+        <div className="flex items-end justify-between mb-4">
+          <h2 className="text-2xl md:text-3xl font-bold">{T.aboutTitle}</h2>
+          <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 border">{T.badgeDemo}</span>
+        </div>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="rounded-2xl border p-6 bg-white shadow-sm">
+            <p className="text-slate-700">{T.aboutP1}</p>
+            <p className="mt-3 text-slate-700">{T.aboutP2}</p>
+            <ul className="mt-4 space-y-2 text-slate-700">
+              <li>{T.aboutBul1}</li>
+              <li>{T.aboutBul2}</li>
+              <li>{T.aboutBul3}</li>
+              <li>{T.aboutBul4}</li>
+            </ul>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="rounded-2xl border p-5 bg-white shadow-sm flex items-start gap-3">
+              <ShieldCheck className="h-6 w-6 text-emerald-600" />
+              <div>
+                <p className="font-medium">Qualité des données</p>
+                <p className="text-sm text-slate-600">Contrôles anti-duplication, fallback images, quantités quand disponibles.</p>
+              </div>
+            </div>
+            <div className="rounded-2xl border p-5 bg-white shadow-sm flex items-start gap-3">
+              <LineChartIcon className="h-6 w-6 text-emerald-600" />
+              <div>
+                <p className="font-medium">Insights rapides</p>
+                <p className="text-sm text-slate-600">Graphiques de ventes (démo) et conversions CAD↔USD intégrées.</p>
+              </div>
+            </div>
+            <div className="rounded-2xl border p-5 bg-white shadow-sm flex items-start gap-3">
+              <Bell className="h-6 w-6 text-emerald-600" />
+              <div>
+                <p className="font-medium">Alertes</p>
+                <p className="text-sm text-slate-600">Avertis-toi par courriel sur un SKU, un magasin ou un niveau de prix.</p>
+              </div>
+            </div>
+            <div className="rounded-2xl border p-5 bg-white shadow-sm flex items-start gap-3">
+              <Wallet className="h-6 w-6 text-emerald-600" />
+              <div>
+                <p className="font-medium">Pensé pour la revente</p>
+                <p className="text-sm text-slate-600">Repère vite les marges & occupe-toi de l’achat — on s’occupe du tri.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Espace investisseurs */}
+      <section id="investors" className="mx-auto max-w-7xl px-4 pb-12">
+        <h2 className="text-2xl md:text-3xl font-bold mb-4">{T.investorsTitle}</h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="rounded-2xl border p-6 bg-white shadow-sm">
+            <p className="text-slate-700">{T.investorsP1}</p>
+            <p className="mt-3 text-slate-700">{T.investorsP2}</p>
+          </div>
+          <div className="rounded-2xl border p-6 bg-white shadow-sm">
+            <p className="font-medium mb-2">{T.investorsKPIs}</p>
+            <ul className="space-y-2 text-slate-700">
+              <li>{T.investorsK1}</li>
+              <li>{T.investorsK2}</li>
+              <li>{T.investorsK3}</li>
+            </ul>
+            <a href="#deals" className="inline-block mt-4 px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">{T.investorsCTA}</a>
+          </div>
+        </div>
+      </section>
+
+      {/* Keepa public (inchangé) */}
       <section className="mx-auto max-w-7xl px-4 pb-12">
         <h3 className="text-xl font-semibold mb-2">Vue type Keepa</h3>
         <div className="grid md:grid-cols-2 gap-6">
@@ -377,4 +488,3 @@ export default function App() {
     </div>
   );
 }
-
