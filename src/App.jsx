@@ -481,6 +481,91 @@ export default function App() {
           </div>
         </div>
       </section>
+{/* ================= Best Buy ================= */}
+<section id="bestbuy" className="mx-auto max-w-6xl px-4 py-10">
+  <h2 className="text-2xl font-bold mb-4">Liquidations Best Buy</h2>
+
+  <div className="grid gap-2 mb-3 grid-cols-1 sm:grid-cols-[1fr_140px_180px_auto]">
+    <input
+      className="border rounded px-3 py-2"
+      placeholder="Recherche (tv, laptop, samsung)…"
+      value={bbQuery}
+      onChange={(e) => setBbQuery(e.target.value)}
+    />
+    <select
+      className="border rounded px-3 py-2"
+      value={bbMinPct}
+      onChange={(e) => setBbMinPct(parseInt(e.target.value, 10))}
+    >
+      <option value={40}>≥ 40%</option>
+      <option value={50}>≥ 50%</option>
+      <option value={60}>≥ 60%</option>
+      <option value={70}>≥ 70%</option>
+    </select>
+    <select
+      className="border rounded px-3 py-2"
+      value={bbSort}
+      onChange={(e) => setBbSort(e.target.value)}
+    >
+      <option value="discount">% rabais (desc)</option>
+      <option value="priceAsc">Prix (croissant)</option>
+      <option value="priceDesc">Prix (décroissant)</option>
+    </select>
+    <button className="bg-indigo-600 text-white rounded px-4 py-2" onClick={loadBestBuyDeals}>
+      Charger
+    </button>
+  </div>
+
+  <div className="text-slate-600 mb-4">{bbStatus}</div>
+
+  <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+    {bbLoading
+      ? Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="h-56 rounded-lg bg-slate-200 animate-pulse" />
+        ))
+      : bbItems.map((p) => (
+          <div key={p.sku} className="rounded-xl overflow-hidden border border-slate-200 bg-white">
+            <div className="aspect-[16/10] grid place-items-center bg-slate-50">
+              {p.image && (
+                <img src={p.image} alt={p.name} className="max-h-full max-w-full object-contain" />
+              )}
+            </div>
+            <div className="p-3">
+              <div className="font-semibold mb-2 line-clamp-2">{p.name}</div>
+              <div className="flex items-baseline gap-2">
+                <span className="line-through text-slate-400">{fmt(p.regularPrice)}</span>
+                <span className="font-bold text-emerald-600">{fmt(p.salePrice)}</span>
+                <span className="ml-auto text-xs font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                  -{pctOff(p.regularPrice, p.salePrice)}%
+                </span>
+              </div>
+              <div className="text-xs text-slate-500 mt-1">SKU: {p.sku}</div>
+              <div className="flex gap-2 mt-3">
+                {p.url && (
+                  <a
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-center rounded-lg border border-indigo-200 bg-indigo-600 text-white px-3 py-2"
+                  >
+                    Voir chez Best Buy
+                  </a>
+                )}
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(p.name || "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 text-center rounded-lg border px-3 py-2"
+                >
+                  Comparer
+                </a>
+              </div>
+            </div>
+          </div>
+        ))}
+  </div>
+</section>
+{/* =============== /Best Buy ================== */}
 
       <footer className="border-t bg-white">
         <div className="mx-auto max-w-7xl px-4 py-6 text-sm text-slate-500">{T.footer}</div>
